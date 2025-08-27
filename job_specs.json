@@ -1,0 +1,14 @@
+{
+    "RAN Engineer/Wireless Engineer": {
+        "required_skills": [
+            "First and second level faulty handling support of 2G/3G/4G LTE",
+            "Commissioning and integration of BTS, NodeB, eNodeB, LTE & gNodeB",
+            "eNodeB/nodeB/BTS survey and installation",
+            "KPI analysis fault troubleshooting",
+            "Work with cross domain teams",
+            "Understanding of network Topology",
+            "Analysis of health check reports",
+            "Software patches/software upgrade as per OEM Suggestions"
+        ]
+    }
+}
