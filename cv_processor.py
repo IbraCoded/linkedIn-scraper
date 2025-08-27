@@ -11,6 +11,7 @@ import spacy
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
+from nltk.stem import PorterStemmer
 import logging
 
 # Configure logging
@@ -18,11 +19,14 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 # Load spaCy model (optimized for performance)
-try:
-    nlp = spacy.load("en_core_web_sm", disable=["ner", "lemmatizer"])
-except Exception as e:
-    logger.error(f"Failed to load spaCy model: {e}")
-    raise
+# try:
+#     nlp = spacy.load("en_core_web_sm", disable=["ner", "lemmatizer"])
+# except Exception as e:
+#     logger.error(f"Failed to load spaCy model: {e}")
+#     raise
+
+nlp = spacy.load("en_core_web_sm")
+stemmer = PorterStemmer()
 
 # Define job requirements for RAN Engineer/Wireless Engineer
 JOB_SPEC = {
@@ -85,42 +89,151 @@ def calculate_job_similarity(cv_text: str, job_spec: Dict) -> Tuple[float, List[
     Calculate similarity between CV and job requirements using TF-IDF and spaCy
     Returns: (similarity_score, matched_skills)
     """
+    # try:
+    #     # Preprocess texts
+    #     cv_doc = nlp(cv_text.lower())
+    #     print(f"   Job Sppec: {job_spec}")
+    #     job_doc = nlp(" ".join(job_spec["required_skills"]).lower())
+        
+    #     # Extract tokens and remove stop words
+    #     cv_tokens = [token.lemma_ for token in cv_doc if not token.is_stop and token.is_alpha]
+    #     job_tokens = [token.lemma_ for token in job_doc if not token.is_stop and token.is_alpha]
+        
+    #     # Create TF-IDF vectors
+    #     # vectorizer = TfidfVectorizer()
+    #     vectorizer = TfidfVectorizer(ngram_range=(1, 3))
+    #     tfidf_matrix = vectorizer.fit_transform([
+    #         " ".join(cv_tokens),
+    #         " ".join(job_tokens)
+    #     ])
+        
+    #     # Calculate cosine similarity
+    #     similarity = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0]
+        
+    #     # Find matched skills
+    #     matched_skills = []
+    #     cv_text_lemmas = set(token.lemma_ for token in cv_doc if not token.is_stop and token.is_alpha)
+    #     for skill in job_spec["required_skills"]:
+    #         # Use spaCy for semantic matching
+    #         skill_doc = nlp(skill.lower())
+    #         skill_lemmas = set(token.lemma_ for token in skill_doc if not token.is_stop)
+    #         if any(lemma in cv_text_lemmas for lemma in skill_lemmas):
+    #             matched_skills.append(skill)
+        
+    #     return round(similarity, 2), matched_skills
+    # except Exception as e:
+    #     logger.error(f"Error calculating job similarity: {e}")
+    #     return 0.0, []
+
+    # try:
+    #     # Preprocess texts by joining skills and converting to lowercase
+    #     job_skills_text = " ".join(job_spec.get("required_skills", [])).lower()
+    #     cv_text_lower = cv_text.lower()
+
+    #     # Create TF-IDF vectors
+    #     # TfidfVectorizer handles tokenization and stop word removal automatically
+    #     vectorizer = TfidfVectorizer(stop_words='english', ngram_range=(1, 3))
+    #     tfidf_matrix = vectorizer.fit_transform([cv_text_lower, job_skills_text])
+        
+    #     # Calculate cosine similarity
+    #     similarity = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0]
+
+    #     # Find matched skills based on simple string matching
+    #     matched_skills = []
+    #     cv_words = set(cv_text_lower.split())
+        
+    #     for skill in job_spec.get("required_skills", []):
+    #         if skill.lower() in cv_words:
+    #             matched_skills.append(skill)
+                
+    #     return round(similarity, 2), matched_skills
+    # except Exception as e:
+    #     print(f"Error calculating job similarity: {e}")
+    #     return 0.0, []
+
+    # try:
+    #     # Preprocess texts
+    #     cv_doc = nlp(cv_text.lower())
+    #     job_doc = nlp(" ".join(job_spec["required_skills"]).lower())
+
+    #     # Extract tokens and apply stemming
+    #     cv_tokens = [stemmer.stem(token.text) for token in cv_doc if not token.is_stop and token.is_alpha]
+    #     job_tokens = [stemmer.stem(token.text) for token in job_doc if not token.is_stop and token.is_alpha]
+        
+    #     # Create TF-IDF vectors
+    #     vectorizer = TfidfVectorizer(ngram_range=(1, 3))
+    #     tfidf_matrix = vectorizer.fit_transform([
+    #         " ".join(cv_tokens),
+    #         " ".join(job_tokens)
+    #     ])
+        
+    #     # Calculate cosine similarity
+    #     similarity = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0]
+        
+    #     # Find matched skills
+    #     matched_skills = []
+    #     cv_text_stems = set(stemmer.stem(token.text) for token in cv_doc if not token.is_stop and token.is_alpha)
+        
+    #     for skill in job_spec["required_skills"]:
+    #         skill_doc = nlp(skill.lower())
+    #         skill_stems = set(stemmer.stem(token.text) for token in skill_doc if not token.is_stop)
+            
+    #         if any(stem in cv_text_stems for stem in skill_stems):
+    #             matched_skills.append(skill)
+        
+    #     return round(similarity, 2), matched_skills
+    # except Exception as e:
+    #     # It's better to use a logger here
+    #     print(f"Error calculating job similarity: {e}")
+    #     return 0.0, []
+
     try:
+        # --- Part 1: TF-IDF Calculation ---
         # Preprocess texts
         cv_doc = nlp(cv_text.lower())
-        print(f"   Job Sppec: {job_spec}")
         job_doc = nlp(" ".join(job_spec["required_skills"]).lower())
-        
-        # Extract tokens and remove stop words
-        cv_tokens = [token.lemma_ for token in cv_doc if not token.is_stop and token.is_alpha]
-        job_tokens = [token.lemma_ for token in job_doc if not token.is_stop and token.is_alpha]
+
+        # Extract tokens and apply stemming
+        cv_tokens = [stemmer.stem(token.text) for token in cv_doc if not token.is_stop and token.is_alpha]
+        job_tokens = [stemmer.stem(token.text) for token in job_doc if not token.is_stop and token.is_alpha]
         
         # Create TF-IDF vectors
-        vectorizer = TfidfVectorizer()
+        vectorizer = TfidfVectorizer(ngram_range=(1, 3))
         tfidf_matrix = vectorizer.fit_transform([
             " ".join(cv_tokens),
             " ".join(job_tokens)
         ])
         
-        # Calculate cosine similarity
-        similarity = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0]
+        # Calculate cosine similarity (our first component of the score)
+        tfidf_score = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0]
         
-        # Find matched skills
+        # --- Part 2: Find Matched Skills and Calculate a Percentage Score ---
         matched_skills = []
-        cv_text_lemmas = set(token.lemma_ for token in cv_doc if not token.is_stop and token.is_alpha)
+        cv_text_stems = set(stemmer.stem(token.text) for token in cv_doc if not token.is_stop and token.is_alpha)
+        
         for skill in job_spec["required_skills"]:
-            # Use spaCy for semantic matching
             skill_doc = nlp(skill.lower())
-            skill_lemmas = set(token.lemma_ for token in skill_doc if not token.is_stop)
-            if any(lemma in cv_text_lemmas for lemma in skill_lemmas):
+            skill_stems = set(stemmer.stem(token.text) for token in skill_doc if not token.is_stop)
+            
+            if any(stem in cv_text_stems for stem in skill_stems):
                 matched_skills.append(skill)
         
-        return round(similarity, 2), matched_skills
+        # Calculate the percentage of matched skills
+        total_required_skills = len(job_spec.get("required_skills", []))
+        if total_required_skills > 0:
+            skill_match_percentage = len(matched_skills) / total_required_skills
+        else:
+            skill_match_percentage = 0.0
+
+        # --- Part 3: Combine Scores with a Weighted Average ---
+        # We'll give more weight to the skill count since you want it to have a bigger impact.
+        # You can adjust these weights (e.g., 0.6 and 0.4) as needed.
+        final_score = (tfidf_score * 0.4) + (skill_match_percentage * 0.6)
+        
+        return round(final_score, 2), matched_skills
     except Exception as e:
-        logger.error(f"Error calculating job similarity: {e}")
+        print(f"Error calculating job similarity: {e}")
         return 0.0, []
-
-
 
 
 def parse_cv_text_to_json_ultra_robust(text: str, name: str = "",  job_spec: Dict = None) -> Dict:

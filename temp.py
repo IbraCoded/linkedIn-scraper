@@ -508,7 +508,7 @@ async def scrape_linkedin_profiles(search_query: str, location: str, max_profile
                     #check if the similarity is less than 30%
                     
                     # if cv_data:
-                    if cv_data and (cv_data.get('Job_Match', {}).get('similarity_score', 0.0) >= 0.3):
+                    if cv_data and (cv_data.get('Job_Match', {}).get('similarity_score', 0.0) >= 0.12):
                         #debugging output
                         #print(f"🔍 DEBUG: download_and_process_cv returned: {cv_data}")
                         
