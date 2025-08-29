@@ -48,8 +48,8 @@ async def search_linkedin_profiles(page, search_query, location="Nigeria", max_p
         await page.wait_for_timeout(3000)  # Let the page load
         
         # Take screenshot of search results
-        await page.screenshot(path=f"{settings.SCREENSHOTS_PATH}/search_results.png")
-        print(f"📸 Screenshot: {settings.SCREENSHOTS_PATH}/search_results.png")
+        # await page.screenshot(path=f"{settings.SCREENSHOTS_PATH}/search_results.png")
+        # print(f"📸 Screenshot: {settings.SCREENSHOTS_PATH}/search_results.png")
         
         profiles = []
         
@@ -169,9 +169,9 @@ async def download_and_process_cv(page, profile: Dict, job_spec:dict) -> Optiona
         await page.wait_for_load_state('domcontentloaded')
         await page.wait_for_timeout(3000)
         
-        # Take screenshot
+        # # Take screenshot
         safe_name = profile['name'].replace(' ', '_').replace('/', '_')
-        await page.screenshot(path=f"{settings.SCREENSHOTS_PATH}/{safe_name}_profile.png")
+        # await page.screenshot(path=f"{settings.SCREENSHOTS_PATH}/{safe_name}_profile.png")
         
         # Monitor downloads folder for new PDF files
         downloads_folder = os.path.expanduser("~/Downloads")
@@ -248,8 +248,9 @@ async def download_and_process_cv(page, profile: Dict, job_spec:dict) -> Optiona
             async def save_download():
                 nonlocal download_path
                 try:
-                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    filename = f"{safe_name}_CV_{timestamp}.pdf"
+                    # timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    # filename = f"{safe_name}_CV_{timestamp}.pdf"
+                    filename = f"{safe_name}.pdf"
                     download_path = os.path.join(settings.DOWNLOADS_PATH, filename)
                     await download.save_as(download_path)
                     print(f"   ✅ PDF downloaded: {download_path}")
@@ -478,15 +479,15 @@ async def scrape_linkedin_profiles(search_query: str, location: str, max_profile
                 print(f"      URL: {profile['url']}")
             
             # Save search results to JSON for reference
-            search_results_file = f"{settings.PROCESSED_PATH}/search_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-            with open(search_results_file, 'w', encoding='utf-8') as f:
-                json.dump({
-                    "search_query": search_query,
-                    "location": location,
-                    "search_date": datetime.now().isoformat(),
-                    "profiles": profiles
-                }, f, indent=2, ensure_ascii=False)
-            print(f"💾 Search results saved to: {search_results_file}")
+            # search_results_file = f"{settings.PROCESSED_PATH}/search_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            # with open(search_results_file, 'w', encoding='utf-8') as f:
+            #     json.dump({
+            #         "search_query": search_query,
+            #         "location": location,
+            #         "search_date": datetime.now().isoformat(),
+            #         "profiles": profiles
+            #     }, f, indent=2, ensure_ascii=False)
+            # print(f"💾 Search results saved to: {search_results_file}")
             
             # Process each profile
             print("\n" + "="*50)
@@ -572,6 +573,10 @@ async def scrape_linkedin_profiles(search_query: str, location: str, max_profile
                         # Small delay between profiles
                         await page.wait_for_timeout(2000)
                         
+                        # delete the downloaded PDF to save space
+                        if 'source_pdf' in cv_data and os.path.exists(cv_data['source_pdf']):
+                            os.remove(cv_data['source_pdf'])
+                            print(f"   🗑️  Deleted temporary file: {cv_data['source_pdf']}")
                 except Exception as e:
                     print(f"Error processing profile {profile['name']}: {e}")
                     continue

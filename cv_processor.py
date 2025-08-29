@@ -44,6 +44,20 @@ JOB_SPEC = {
 }
 
 
+# Helper function to safely delete files
+def safe_delete_file(file_path: str) -> None:
+    """
+    Safely delete a file and log the result.
+    """
+    try:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            print(f"Deleted file: {file_path}")
+        else:
+            print(f"File not found for deletion: {file_path}")
+    except Exception as e:
+        print(f"Error deleting file {file_path}: {e}")
+
 async def extract_text_from_pdf(pdf_path: str) -> str:
     """
     Extract text from PDF using multiple methods for best results
@@ -692,7 +706,7 @@ async def process_downloaded_cv(pdf_path: str, profile_name: str, job_spec:dict)
         if not cv_text.strip():
             print(f"   ❌ No text extracted from PDF")
             return None
-        
+        safe_delete_file(pdf_path)  # Delete PDF
         # Step 2: Save text file
         base_name = os.path.splitext(os.path.basename(pdf_path))[0]
         text_file_path = os.path.join(settings.PROCESSED_PATH, f"{base_name}.txt")
@@ -722,6 +736,18 @@ async def process_downloaded_cv(pdf_path: str, profile_name: str, job_spec:dict)
         print(f"      - Education entries: {len(cv_json['Education'])}")
         print(f"      - Certifications: {len(cv_json['Certifications'])}")
         print(f"      - Languages: {len(cv_json['Languages'])} found")
+        
+        
+        # Step 6: Clean up files (PDF, TXT, JSON, and screenshot)
+        print(f"   🗑️ Cleaning up files for {base_name}")
+        safe_delete_file(text_file_path)  # Delete TXT
+        safe_delete_file(json_file_path)  # Delete JSON
+        
+        # Attempt to delete screenshot (assuming .png or .jpg extension)
+        screenshot_png_path = os.path.join(settings.SCREENSHOTS_PATH, f"{base_name}.png")
+        safe_delete_file(screenshot_png_path)  # Delete PNG screenshot if exists
+        
+        print(f"   ✅ Cleanup completed for {base_name}")
         
         return cv_json
         

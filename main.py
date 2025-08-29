@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from typing import Optional
 import asyncio
 import uvicorn
+import psutil
 
 # Import your original function here
 from temp import scrape_linkedin_profiles
@@ -26,6 +27,8 @@ async def scrape_profiles(request: ScrapeRequest):
             max_profiles=request.max_profiles,
             job_spec = request.job_spec
         )
+        
+        print(f"CPU Usage: {psutil.cpu_percent(interval=1, percpu=True)}%")
         return {"status": "success", "result": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
